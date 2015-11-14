@@ -2,14 +2,19 @@ package figures;
 
 import java.awt.geom.Point2D;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.ListIterator;
 
 /**
  * Многоугольник. В основе реализации лежит LinkedList из вершин.
  *
- * NB:Не меньше трех точек * NB:testMove() - сдвинулись ли отрезки? *
+ * NB:Не меньше трех точек.
+ *
+ * NB:testMove() - сдвинулись ли отрезки?
+ *
  * NB:Недопустимо иметь в многоугольнике вершину, при которой угол является
  * развернутым.
  *
@@ -17,10 +22,39 @@ import java.util.ListIterator;
  */
 public class Polygon {
 
+    /**
+     * Вершины многоугольника.
+     */
     protected LinkedList<Vertex> vertexes;
+    /**
+     * Кэширующее поле, содержащее стороны многоугольника.
+     *
+     * XXX: отследить влияние трансформирующих многоугольник методов на
+     * содержимое этого поля.
+     *
+     * NB: изначально поле пустое. Инициализируется вызовом breakToEdges() или
+     * getEdges()(который содержит вызов breakToEdges()).
+     */
     protected LinkedList<Section> edges;
 
+    /**
+     * Кэширующее поле, содержащее запись о выпуклости многоугольника. true,
+     * если многоугольник выпуклый; false в противном случае, или если
+     * вычисление еще не проводилось. NB: изначально поле имеет значение false.
+     * Инициализируется вызовом метода countConvexity() или isConvex()(который
+     * содержит вызов countConvexity()).
+     *
+     * @see #countedConvexity
+     */
     protected boolean convex;
+    /**
+     * Поле указывает, проводилась ли оценка выпуклости многоугольника. false
+     * обозначает, что нет. Т.е., поле convex не несет смысловой нагрузки. true
+     * указывает, что оценка выпуклости проводилась, и ее результат был
+     * кэширован.
+     *
+     * @see #countedConvexity
+     */
     protected boolean countedConvexity;
 
     /**
@@ -33,27 +67,29 @@ public class Polygon {
      * стороны имеют нулевую длину, либо при некоторых вершинах угол
      * развернутый.
      */
-    public Polygon(Point2D.Double points[]) throws VertexAmountException, VertexPositionException {
-        if (points.length < 3) {
-            throw new VertexAmountException("Need at least three vertexes. Found: " + points.length);
-        }
-        if (Polygon.positionsCorrupted(points)) {
-            throw new VertexPositionException("Shouldn't contain fictive vertexs");
-        }
-
-        vertexes = new LinkedList<>();
-        Arrays.asList(points).forEach(point -> vertexes.add((Vertex) point));
-        vertexes.add((Vertex) points[0]);
+    public Polygon(Point2D.Double... points) throws VertexAmountException, VertexPositionException {
+        this(Arrays.asList(points));
     }
 
-    /**
-     * Создает пустой многоугольник. Используется для более эффективной работы
-     * Builder'а.
-     * 
-     * XXX: отследить необходимость его присутствия.
-     */
-    protected Polygon() {
-        throw new UnsupportedOperationException();
+    public Polygon(List<? extends Point2D.Double> points) throws VertexAmountException, VertexPositionException {
+        if (points.size() < 3) {
+            throw new VertexAmountException("Need at least three vertexes. Found: " + points.size());
+        }
+
+        //XXX: отследить безопасность этого куска кода в плане того, что добавленные точки  не мгут подвергнуться внешним изменениям.
+        vertexes = new LinkedList<>();
+        points.forEach(point -> vertexes.add((Vertex) point));
+        vertexes.add((Vertex) points.get(0));
+
+        if (Polygon.positionsCorrupted(vertexes)) {
+            throw new VertexPositionException("Shouldn't contain fictive vertexs");
+        } /*
+         * Проверка вынесена в конец потому, что метод positionsCorrupted()
+         * требует, чтобы в конец была добавлена фиктивная точка. Таким образом,
+         * если конструктору будет передан набор вершин, в котром первая и
+         * последняя точки совпадают, он не будет отбракован.
+         */
+
     }
 
     /**
@@ -134,6 +170,18 @@ public class Polygon {
     }
 
     /**
+     * Проверка принадлежности точки заданному многоугольнику. Если точка лежит
+     * на границе, то считается,что она _принадлежит_ многоугольнику.
+     *
+     * @param point проверяемая точка.
+     * @return true, если многоугольник содержит точку. В противном случае
+     * false.
+     */
+    public boolean contains(Point2D.Double point) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
      * Метод упрощает ручное построение многоугольника через использование
      * паттерна Builder.
      *
@@ -203,8 +251,8 @@ public class Polygon {
      * @param points
      * @return
      */
-    protected static boolean positionsCorrupted(Point2D.Double[] points) {
-        Iterator<Point2D.Double> itera = Arrays.asList(points).iterator();
+    protected static boolean positionsCorrupted(Collection<? extends Point2D.Double> points) {
+        Iterator<? extends Point2D.Double> itera = points.iterator();
 
         Point2D.Double p1 = itera.next();
         Point2D.Double p2 = itera.next();
@@ -246,6 +294,10 @@ public class Polygon {
 
         private Builder() {
         }
+        /**
+         * Буфер, в котором последовательно накапливаются точки, из которых
+         * будет составлен многоугольник.
+         */
         protected final LinkedList<Vertex> p = new LinkedList<>();
 
         /**
@@ -296,9 +348,7 @@ public class Polygon {
          * @return многоугольник, сконструированный на основе накопленных точек.
          */
         public Polygon build() throws VertexAmountException, VertexPositionException {
-            Point2D.Double p2[] = new Point2D.Double[p.size()];
-            p.toArray(p2);
-            return new Polygon(p2);
+            return new Polygon(p);
         }
     }
 }
