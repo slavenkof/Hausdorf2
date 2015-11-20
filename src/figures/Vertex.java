@@ -8,13 +8,20 @@ import java.awt.geom.Point2D;
  * изменение начала координат. Спроектирован с использованием шаблона "текучий
  * интерфейс" - методы, изменяющие положение точки в пространстве, во-первых,
  * изменяют саму точку (новых объектов не создается), во-вторых, возвращают в
- * качестве эту же точку.
+ * качестве результата эту же точку.
+ *
+ * XXX: поле name и метод toString();
  *
  * @author Матвей
  */
 public class Vertex extends Point2D.Double implements Cloneable {
 
     private static final long serialVersionUID = 1L;
+
+    /**
+     * Поле, хранящее "имя" вершины многоугольника.
+     */
+    protected String name;
 
     /**
      * Базовый конструктор вершины многоугольника. Принимает два аргумента -
@@ -25,6 +32,16 @@ public class Vertex extends Point2D.Double implements Cloneable {
      */
     public Vertex(double x, double y) {
         super(x, y);
+    }
+
+    /**
+     * Конструктор вершины многоугольника. Для конструирования используются
+     * только первые две координаты, остальные игнорируются.
+     *
+     * @param coordinates координаты вершины.
+     */
+    public Vertex(double coordinates[]) {
+        this(coordinates[0], coordinates[1]);
     }
 
     /**
@@ -40,6 +57,27 @@ public class Vertex extends Point2D.Double implements Cloneable {
     }
 
     /**
+     * Возвращает имя, присвоенное вершине.
+     *
+     * @return name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Присвоить имя данной вершине. Поддерживает шаблон "текучего интерфейса".
+     *
+     * @param name имя, которое надлежит присвоить вершине
+     * @return возвращает этот же объект, тем самым обеспечивая поддержку
+     * "текучего интерфейса".
+     */
+    public Vertex setName(String name) {
+        this.name = name;
+        return this;
+    }
+
+    /**
      * Метод для получения радиус-вектора точки.
      *
      * @return радиус-вектор точки.
@@ -49,22 +87,26 @@ public class Vertex extends Point2D.Double implements Cloneable {
     }
 
     /**
-     * Параллельный перенос точки на заданный вектор.
+     * Параллельный перенос точки на заданный вектор. Поддерживает шаблон
+     * "текучего интерфейса".
      *
      * @param vec вектор, на который осуществляется параллельный перенос.
-     * @return эта же точка после переноса.
+     * @return возвращает этот же объект после смещения, тем самым обеспечивая
+     * поддержку "текучего интерфейса".
      */
     public Vertex move(Vector vec) {
-        x += vec.x;
-        y += vec.y;
+        x += vec.getX();
+        y += vec.getY();
         return this;
     }
 
     /**
-     * Поворот точки на заданный угол вокруг начала координат.
+     * Поворот точки на заданный угол вокруг начала координат. Поддерживает
+     * шаблон "текучего интерфейса".
      *
      * @param angle угол поворота в радианах.
-     * @return эта же точка после поворота.
+     * @return возвращает этот же объект после поворота, тем самым обеспечивая
+     * поддержку "текучего интерфейса".
      */
     public Vertex rotate(double angle) {
         throw new UnsupportedOperationException("NotSupportedYet");
@@ -72,10 +114,12 @@ public class Vertex extends Point2D.Double implements Cloneable {
     }
 
     /**
-     * Смещение начала координат в указанную точку.
+     * Смещение начала координат в указанную точку. Поддерживает шаблон
+     * "текучего интерфейса".
      *
      * @param newO новое начало координат.
-     * @return точка, размещенная в новой системе координат.
+     * @return возвращает этот же объект размещенныйв новой системе координат,
+     * тем самым обеспечивая поддержку "текучего интерфейса".
      */
     public Vertex relocate(Vertex newO) {
         throw new UnsupportedOperationException("NotSupportedYet");
