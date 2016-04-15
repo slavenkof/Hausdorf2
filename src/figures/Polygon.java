@@ -53,7 +53,7 @@ public class Polygon {
      * указывает, что оценка выпуклости проводилась, и ее результат был
      * кэширован.
      *
-     * @see #countedConvexity
+     * @see #convexity
      */
     protected boolean countedConvexity;
 
@@ -76,9 +76,8 @@ public class Polygon {
             throw new VertexAmountException("Need at least three vertexes. Found: " + points.size());
         }
 
-        //XXX: отследить безопасность этого куска кода в плане того, что добавленные точки  не мгут подвергнуться внешним изменениям.
         vertexes = new LinkedList<>();
-        points.forEach(point -> vertexes.add((Vertex) point));
+        points.forEach(point -> vertexes.add((Vertex) point.clone()));
         vertexes.add((Vertex) points.get(0));
 
         if (Polygon.positionsCorrupted(vertexes)) {
@@ -86,7 +85,7 @@ public class Polygon {
         } /*
          * Проверка вынесена в конец потому, что метод positionsCorrupted()
          * требует, чтобы в конец была добавлена фиктивная точка. Таким образом,
-         * если конструктору будет передан набор вершин, в котром первая и
+         * если конструктору будет передан набор вершин, в котором первая и
          * последняя точки совпадают, он не будет отбракован.
          */
 
@@ -99,7 +98,9 @@ public class Polygon {
      * @return
      */
     public LinkedList<Vertex> getVertexes() {
-        return (LinkedList) vertexes.clone();
+        final LinkedList<Vertex> answer = new LinkedList<>();
+        vertexes.forEach((vert) -> answer.add(vert.clone()));
+        return answer;
     }
 
     /**
@@ -108,13 +109,20 @@ public class Polygon {
      * при вызове данного метода. В последствии, при вызове метода возвращается
      * кэшированный результат.
      *
-     * @return
+     * @return список сторон многоугольника.
+     * @throws java.lang.CloneNotSupportedException
      */
-    public LinkedList<Section> getEdges() {
+    public LinkedList<Section> getEdges() throws CloneNotSupportedException {
+        final LinkedList<Section> answer = new LinkedList<>();
+        
         if (edges == null) {
             breakToEdges();
         }
-        return (LinkedList) edges.clone();
+        
+        for(Section edge:edges){
+            answer.add(edge.clone());
+        }
+        return answer;
     }
 
     /**
@@ -280,6 +288,26 @@ public class Polygon {
         }
 
         return false;
+    }
+
+    /**
+     * Возвращает строковое представление многоугольника в виде:      <code>
+     * [
+     * (0; 0)
+     * (0; 1)
+     * (0; 2)
+     * ] </code>
+     *
+     * @return
+     */
+    @Override
+    public String toString() {
+        final StringBuilder str = new StringBuilder("[" + "\n");
+        vertexes.stream().forEach((vert) -> {
+            str.append(vert.toString()).append("\n");
+        });
+        str.append("]");
+        return str.toString();
     }
 
     /**

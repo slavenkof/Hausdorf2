@@ -14,7 +14,7 @@ import java.util.Objects;
  *
  * @author Матвей
  */
-public class Section {
+public class Section implements Cloneable{
 
     /**
      * Первая граничная точка отрезка.
@@ -168,6 +168,19 @@ public class Section {
      */
     public void setB(Vertex b) {
         this.b = b;
+    }
+
+    /**
+     * Производит глубокое копирование объекта.
+     * @return копия объекта.
+     * @throws CloneNotSupportedException 
+     */
+    @Override
+    public Section clone() throws CloneNotSupportedException {
+        Section clone = (Section) super.clone();
+        clone.a = a.clone();
+        clone.b = b.clone();
+        return clone;
     }
 
 }
