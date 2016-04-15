@@ -1,6 +1,8 @@
 package figures;
 
 import java.awt.geom.Point2D;
+import static java.lang.StrictMath.cos;
+import static java.lang.StrictMath.sin;
 
 /**
  * Класс представляет вершину многоугольника. Включены необходимые в рамках
@@ -88,8 +90,7 @@ public class Vertex extends Point2D.Double implements Cloneable {
 
     /**
      * Параллельный перенос точки на заданный вектор. Поддерживает шаблон
-     * "текучего интерфейса".
-     * XXX: Исключения в случае ограниченного вектора.
+     * "текучего интерфейса". XXX: Исключения в случае ограниченного вектора.
      *
      * @param vec вектор, на который осуществляется параллельный перенос.
      * @return возвращает этот же объект после смещения, тем самым обеспечивая
@@ -105,13 +106,16 @@ public class Vertex extends Point2D.Double implements Cloneable {
      * Поворот точки на заданный угол вокруг начала координат. Поддерживает
      * шаблон "текучего интерфейса".
      *
-     * @param angle угол поворота в радианах.
+     * @param phi угол поворота в радианах.
      * @return возвращает этот же объект после поворота, тем самым обеспечивая
      * поддержку "текучего интерфейса".
      */
-    public Vertex rotate(double angle) {
-        throw new UnsupportedOperationException("NotSupportedYet");
-//        return this;
+    public Vertex rotate(double phi) {
+        final double x1 = x * cos(phi) - y * sin(phi);
+        final double y1 = x * sin(phi) + y * cos(phi);
+        x = x1;
+        y = y1;
+        return this;
     }
 
     /**
@@ -119,16 +123,18 @@ public class Vertex extends Point2D.Double implements Cloneable {
      * "текучего интерфейса".
      *
      * @param newO новое начало координат.
-     * @return возвращает этот же объект размещенныйв новой системе координат,
+     * @return возвращает этот же объект размещенный в новой системе координат,
      * тем самым обеспечивая поддержку "текучего интерфейса".
      */
     public Vertex relocate(Vertex newO) {
-        throw new UnsupportedOperationException("NotSupportedYet");
-//        return this;
+        x -= newO.x;
+        y -= newO.y;
+        return this;
     }
 
     /**
-     * Создает новый объект этого же класса с таким же содержимым.
+     * Создает новый объект этого же класса с таким же содержимым. Осуществляет
+     * глубокое копирование.
      *
      * @return копия этого экземпляра.
      */
